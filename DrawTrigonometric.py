@@ -11,7 +11,7 @@ pygame.font.init()
 from pygame import gfxdraw
 
 
-#== Display Values ================================
+#==( Display Values )================================
 WIDTH, HEIGHT = 900,500
 # WIDTH, HEIGHT = 1920, 1080
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -21,7 +21,7 @@ CURRENT_SECTION = 'MENU'
 MENU_SECTION = 'MENU'
 
 
-#== Menu UI Values ================================
+#==( Menu UI Values )================================
 FPS_REFRESH_RATE = 1 #s
 
 CENTER_WIDTH, CENTER_HEIGHT =  WIDTH//2, HEIGHT//2
@@ -29,7 +29,7 @@ MENU_WIDTH, MENU_HEIGHT = 500, 400
 
 GRAY ,YELLOW = (209, 209, 209), (255, 255, 0)
 
- #Corner circle
+#Corner circle
 CORNER_CIRCLE_COLOR = (180, 180, 180)
 MENU_CORNER_RADIUS = 11
 MENU_TITLE_FONT = pygame.font.SysFont('comicsans', 35)
@@ -41,10 +41,10 @@ OPTIONS_FONT = pygame.font.SysFont('comicsans', 25)
 INFO_FONT = pygame.font.SysFont('comicsans', 25)
 
 
-#== Control Values ================================
+#==( Control Values )================================
 VEL, VEL_MUL = 125, 10
 
-#== User Settings =================================
+#==( User Settings )=================================
 SETTING_COLOR = (0, 200, 255)
 showXaxis = False
 renderFPS = 60
@@ -89,6 +89,7 @@ class UserSettings():
             self.renderFPS = FPS_SELECTIONS[self.Current_FPS]
 
     def changeThickness(self):
+        #loop through THICKNESS_SELECTIONS. Can be add more or less options in future
         if self.Current_Thickness < len(THICKNESS_SELECTIONS)-1 :
             self.Current_Thickness += 1
             self.lineThickness = THICKNESS_SELECTIONS[self.Current_Thickness]
@@ -120,19 +121,24 @@ class Coshape():
         self.yunit = yunit  
 
 
-    def cosGetCords(self):#xstart: int, xend: int, xaxis: int, xunit: int, yunit: int
-        
+    def GetCords(self):#xstart: int, xend: int, xaxis: int, xunit: int, yunit: int
         result = []
+        piAxis = []
         for x in range(self.xstart, self.xend+1, 1):
+            #implement show y-axis if x == pi
+            #print(math.floor(self.xunit))
+            if x%math.floor(self.xunit) == 0:
+                piAxis.append(x)
+
             #calculate width(x) into angle to feed in cos() and get the height(y)
             #算出弧度後乘以180° (π = 180°) 
-            angle = ((x*(1/self.xunit))/math.pi)*180
+            angle = (x/self.xunit)
             #get the height(y)
             y = math.cos(angle)*self.yunit
             #add it to the result list (x, y)
             result.append((x, self.xaxis-y))
 
-        return result
+        return result, piAxis
 
 
         
@@ -183,7 +189,7 @@ def inputState(keys_pressed, metric, previous_time, now):
 
     
 #function for drawing every thing int the windows : fps, shpaes etc.
-def Draw_window(points, FPS, section):
+def Draw_window(points, piAxis, FPS, section):
 
     #fill background with white to cover up previous renender
     SCREEN.fill(WHITE)
@@ -204,6 +210,9 @@ def Draw_window(points, FPS, section):
         if Settings.showDrawPoints == True:
             for x, y in points:
                 pygame.gfxdraw.circle(SCREEN, int(x), int(y), 2, RED)
+        if True :
+            for x in piAxis:
+                pygame.draw.line(SCREEN, BLACK, (x, 0), (x, HEIGHT))
 
 
     #display FPS at the top right
@@ -252,7 +261,7 @@ def draw_menu():
 
         #options check boxes
 
-        #detecting mouse collion with the button hitbox
+        #detecting mouse will have collison with button hitbox
         MENU_BUTTON_HITBOX = [bt1, bt2, bt3, bt4]
         #get index to identify which botton it is (index, message)
         for i in enumerate(MENU_BUTTON_HITBOX):
@@ -347,7 +356,7 @@ def main():
     fps = 0
 
     cos = Coshape(0, WIDTH, HEIGHT//2, 1, 1)
-    cords = cos.cosGetCords()
+    cords, piAxis = cos.GetCords()
 
     pygame.event.post(pygame.event.Event(Value_update))
 
@@ -363,7 +372,8 @@ def main():
             if event.type == Value_update:
                 if CURRENT_SECTION == 'Draw':
                     #get list of coordinates for the shape
-                    cords = cos.cosGetCords()
+                    print(piAxis)
+                    cords, piAxis = cos.GetCords()
 
             if event.type == QUIT_CALL :
                 print('HELLO')
@@ -383,7 +393,7 @@ def main():
             last_time = time.time()
 
         #pass all value that needs to be drawn
-        Draw_window(cords, fps, CURRENT_SECTION)
+        Draw_window(cords, piAxis, fps, CURRENT_SECTION)
 
         #update the display every drawing needs to be done above update
         pygame.display.update()
