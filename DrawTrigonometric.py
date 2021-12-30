@@ -127,12 +127,12 @@ class Coshape():
         for x in range(self.xstart, self.xend+1, 1):
             #implement show y-axis if x == pi
             #print(math.floor(self.xunit))
-            if x%math.floor(self.xunit) == 0:
+            if x%round(self.xunit) == 0: #x%math.floor(self.xunit)
                 piAxis.append(x)
 
             #calculate width(x) into angle to feed in cos() and get the height(y)
             #算出弧度後乘以180° (π = 180°) 
-            angle = (x/self.xunit)
+            angle = (x/round(self.xunit))*math.pi
             #get the height(y)
             y = math.cos(angle)*self.yunit
             #add it to the result list (x, y)
@@ -155,7 +155,7 @@ def inputState(keys_pressed, metric, previous_time, now):
         pygame.event.post(pygame.event.Event(Value_update))     
 
         #delta time to keep movement at any frame speed would be the same 
-        #inspired by:  https://youtu.be/XuyrHE6GIsc
+        #Idea by:  https://youtu.be/XuyrHE6GIsc
         dt = now - previous_time
     else :
         return 
@@ -204,16 +204,15 @@ def Draw_window(points, piAxis, FPS, section):
 
         if Settings.showXaxis == True:
             pygame.draw.line(SCREEN, DARK_GRAY,(0, HEIGHT//2), (WIDTH, HEIGHT//2))
+            #draw pi axis
+            for x in piAxis:
+                pygame.draw.line(SCREEN, GRAY, (x, 0), (x, HEIGHT))
 
         pygame.draw.lines(SCREEN, BLACK, False, points, Settings.lineThickness)
         #draw circle to display the points that where been calcualted
         if Settings.showDrawPoints == True:
             for x, y in points:
                 pygame.gfxdraw.circle(SCREEN, int(x), int(y), 2, RED)
-        if True :
-            for x in piAxis:
-                pygame.draw.line(SCREEN, BLACK, (x, 0), (x, HEIGHT))
-
 
     #display FPS at the top right
     FPS_text = FONT.render(f'FPS : {FPS}', 1, BLACK)
@@ -372,7 +371,6 @@ def main():
             if event.type == Value_update:
                 if CURRENT_SECTION == 'Draw':
                     #get list of coordinates for the shape
-                    print(piAxis)
                     cords, piAxis = cos.GetCords()
 
             if event.type == QUIT_CALL :
